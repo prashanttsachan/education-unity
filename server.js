@@ -6,7 +6,7 @@ const bodyParser = require("body-parser")
 const cors = require('cors')
 const morgan = require("morgan")
 const { routes } = require("./src/config/Route")
-const db = require("./src/config/DB")
+const db = require("./src/config/db")
 
 app.use(cors())
 app.use(bodyParser.urlencoded({ limit: "2mb", extended: true }))
