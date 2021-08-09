@@ -3,7 +3,7 @@ const routes = express.Router();
 
 routes.get('/', (req, res) => { res.send("This app is working fine.") } );
 
-// const User = require('../Controller/User')
+const User = require('../Controller/User')
 // const Ad = require('../Controller/Advertisement')
 // const Social = require('../Controller/SocialWork')
 // const Donation = require('../Controller/Donation')
@@ -17,10 +17,10 @@ routes.get('/', (req, res) => { res.send("This app is working fine.") } );
 // routes.get('/', (req, res) => { res.send("This app is working fine.") } );
 
 // // User routes
-// routes.post('/user/create', User.create);
-// routes.post('/user/login', User.login);
-// routes.post('/user/update', User.authorization, User.update);
-// routes.post('/user/list', User.authorization, User.list);
+routes.post('/user/create', User.create);
+routes.post('/user/login', User.login);
+routes.post('/user/update', User.authorization, User.update);
+routes.post('/user/list', User.authorization, User.list);
 
 // // Ad routes
 // routes.post('/advertisement/create', User.authorization, Ad.create);
