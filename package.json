@@ -7,16 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/psachan190/education-unity.git"
-  },
   "author": "Prashant Sachan",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/psachan190/education-unity/issues"
-  },
-  "homepage": "https://github.com/psachan190/education-unity#readme",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
