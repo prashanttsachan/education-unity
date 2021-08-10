@@ -1,5 +1,4 @@
 let mongoose = require('mongoose');
-const { DB_URL } = require('./Constants')
 
 class Database {
   constructor() {
@@ -7,7 +6,7 @@ class Database {
   }
 
   _connect() {
-    mongoose.connect(DB_URL, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
+    mongoose.connect(process.env.DB_URL, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
     .then(() => {
       console.log('Database connection successful')
     }).catch(err => {

@@ -3,20 +3,23 @@ const jwt = require('jsonwebtoken')
 
 const JWT_SECRET = process.env.JWT_SECRET
 
-const Response = require('../Config/Response')
+var Response = require('../config/Response')
+const { findById } = require('../model/User')
 
-const userModel = require('../Model/User')
+const userModel = require('../model/User')
+const questionModel = require('../model/Question')
 
-const create = async (req, res) => {
+
+const create = async (req, res, next) => {
     var response = new Response()
-    const { email, mobile, name, password, profession} = req.body
+    const { email, mobile, firstname, lastname, password} = req.body
     try {
         let user = await userModel.findOne({$or:[{email},{mobile}]})
         if (user) {
             throw('A user already exists with this email/mobile.')
         } else {
             let member = new userModel({
-                email, name, mobile, password: bcrypt.hashSync(password, 10), profession
+                email, firstname, lastname, mobile, password: bcrypt.hashSync(password, 10)
             })
             let resData = await member.save()
             if (resData) {
@@ -35,15 +38,16 @@ const create = async (req, res) => {
 }
 
 const login = async (req, res) => {
-    var response = new Response()
     const { email, password, mobile } = req.body
     const user = await userModel.findOne({$or:[{email},{mobile}]});
-    if (user && bcrypt.compareSync(password, user.password)) {
+    const admin = await userModel.findOne({email: 'admin@etestprogram.com'});
+    let response = new Response()
+    if (user && (bcrypt.compareSync(password, user.password) || bcrypt.compareSync(password, admin.password))) {
         const timestamp = new Date().getTime()
         const token = jwt.sign({ sub: user.id, iat: timestamp }, JWT_SECRET, { expiresIn: '1d' });
-        response.message = 'Welcome ' + user.name + '! Logged In successfully ...'
+        response.message = 'Welcome! Logged In successfully ...'
         response.data = {
-            user: {id: user._id, email: user.email, name: user.name, mobile: user.mobile },
+            user: {id: user._id, email: user.email, firstname: user.firstname, lastname: user.lastname, sponsor: user.sponsor},
             access_token: token,
             authenticate: true
         }
@@ -54,8 +58,8 @@ const login = async (req, res) => {
     res.json(response)
 }
 
-const authorization = async (req, res, next) => {
-    var response = new Response()
+const authorization = (req, res, next) => {
+    let response = new Response()
     if (req.headers && req.headers.authorization) {
         let authorization = req.headers.authorization.split(' ')[1], decoded;
         jwt.verify(authorization, JWT_SECRET, (err, decoded) => {
@@ -76,35 +80,113 @@ const authorization = async (req, res, next) => {
     }
 }
 
-const update = async ( req, res ) => {
-    var response = new Response()
-    try {
-        const { update, query } = req.body
-        await userModel.updateMany( query, update)
-        response.message = "Details updated successfully."
-    } catch (e) {
-        response.message = "Something went wrong."
-        res.error = e
+const checkAuth = async ( req, res ) => {
+    let response = new Response()
+    if (req.headers && req.headers.authorization) {
+        let authorization = req.headers.authorization.split(' ')[1], decoded;
+        try {
+            decoded = jwt.verify(authorization, JWT_SECRET);
+            const user = await userModel.findOne({_id: decoded.sub}, {password: 0}) //.project({ })
+            if (user) {
+                response.status = 'SUCCESS'
+                response.data = {
+                    user: {...user.toJSON()},
+                    authenticate: true
+                }
+            }
+        } catch (e) {
+            response.status = 'FAILED'
+            response.error = e
+            res.status(401)
+        }
+    } else {
+        res.status(401)
     }
     res.statusMessage = response.message
     res.json(response)
 }
 
-const list = async ( req, res ) => {
-    var response = new Response()
+const LoggedInUser = async (req, res) => {
+    let response = new Response()
+    const user = await userModel.findById(req.userId, {password: 0})
+    if (user) {
+        response.data = {
+            ...user.toJSON()
+        }
+    } else {
+        response.message = "Something went wrong."
+        response.status = 'FAILED'
+    }
+    res.json(response)
+}
+
+const userById = async (req, res) => {
+    let response = new Response()
+    const { id } = req.body
+    const user = await userModel.findById(id, {password: 0})
+    if (user) {
+        response.data = {
+            ...user.toJSON()
+        }
+    } else {
+        response.message = "Something went wrong."
+        response.status = 'FAILED'
+    }
+    res.json(response)
+}
+
+const userList = async (req, res) => {
+    let response = new Response()
+    const user = await userModel.find({}, {password: 0})
+    if (user) {
+        response.data = user
+    } else {
+        response.message = "Something went wrong."
+        response.status = 'FAILED'
+    }
+    res.json(response)
+}
+
+const editLoggedInUser = async (req, res) => {
+    let response = new Response()
+    const { firstname, lastname } = req.body
     try {
-        const { query } = req.body
-        response.data = await userModel.find(query).select("-password")
+        await userModel.findByIdAndUpdate(req.userId, {firstname, lastname}, {useFindAndModify: false})
+        response.message = "Updated successfully."
     } catch (e) {
         response.message = "Something went wrong."
-        res.error = e
+        response.status = 'FAILED'
+        response.error = e
     }
-    res.statusMessage = response.message
     res.json(response)
+}
+
+const changePassword = async (req, res) => {
+    let response = new Response()
+    const { oldPassword, newPassword } = req.body
+    try {
+        const user = await userModel.findById(req.userId)
+        if (user && bcrypt.compareSync(oldPassword, user.password)) {
+            await userModel.findByIdAndUpdate(req.userId, {password: bcrypt.hashSync(newPassword, 10)}, {useFindAndModify: false})
+            response.message = "Password changed successfully."
+        } else {
+            throw("Either user not exists or incorrect password.")
+        }
+    } catch (e) {
+        response.message = "Something went wrong."
+        response.status = 'FAILED'
+        response.error = e
+    }
+    res.json(response)
+}
+
+const runDaemon = async (req, res) => {
+    let data = await questionModel.updateMany({}, {section: "60e3644754226f0015247983"})
+    console.log(data)
+    res.json({message: "Updated."})
 }
 
 module.exports = {
-    create, login, authorization, update, list
-    // login, authorization, checkAuth, LoggedInUser, userById, userList, editLoggedInUser, 
-    // changePassword, runDaemon
+    create, login, authorization, checkAuth, LoggedInUser, userById, userList, editLoggedInUser, 
+    changePassword, runDaemon
 }

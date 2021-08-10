@@ -1,16 +1,17 @@
 const mongoose = require('mongoose');
+const validator = require('validator')
 
-const quesModel = mongoose.Schema({
+const questionModel = mongoose.Schema({
+    section: { type: mongoose.Schema.Types.ObjectId, ref: 'Section'},
     question: { type: String, required: true },
-    member: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    answer: [
-        { answer: { type: String, required: true } }
-    ],
-    correctAnswer: { type: mongoose.Schema.Types.ObjectId, ref: 'Question.answer', default: null },
-    status: { type: String, default: 'ACTIVE' },
+    marks: { type: Number, required: true, default: 1 },
+    questionImage: { type: String},
+    questionType: { type: String, required: true },
+    answers: [{answer: { type: String, required: true }}],
+    correctAnswer: { type: Number }
 }, { timestamps: true });
 
-quesModel.set('toJSON', {
+questionModel.set('toJSON', {
     virtuals: true,
     versionKey: false,
     transform: function (doc, ret) {
@@ -18,4 +19,4 @@ quesModel.set('toJSON', {
         delete ret.hash;
     }
 });
-module.exports = mongoose.model('Question', quesModel);
+module.exports = mongoose.model('Question', questionModel);
