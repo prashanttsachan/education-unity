@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 const validator = require('validator')
 
 const userModel = mongoose.Schema({
-    firstname: { type: String, required: true },
-    lastname: { type: String, required: true },
+    username: { type: String, },
+    name: { type: String, required: true},
     email: {type: String, required: true, unique: true,
         validate: (value) => {
             return validator.isEmail(value)
@@ -11,6 +11,7 @@ const userModel = mongoose.Schema({
     },
     mobile: {type: Number, required: true, unique: true},
     password: { type: String, required: true },
+    profession: { type: String, required: true },
     type: {type: String, default: 'NA'},
     status: {type: String, default: 'ACTIVE'},
     remarks: {type: String, default: 'Okay'},

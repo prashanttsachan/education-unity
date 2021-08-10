@@ -1,14 +1,14 @@
 const Response = require('../Config/Response')
 
-const quesModel = require('../Model/Question')
+const msgModel = require('../Model/Message')
 
 const create = async (req, res) => {
     var response = new Response()
     try {
-        const { question } = req.body
-        const data = new quesModel({ ...question })
+        const { message } = req.body
+        const data = new msgModel({ ...message })
         await data.save()
-        response.message = "Saved successfully."
+        response.message = "Sent"
     } catch (e) {
         response.message = "Something went wrong."
         res.error = e
@@ -21,7 +21,7 @@ const update = async ( req, res ) => {
     var response = new Response()
     try {
         const { update, query } = req.body
-        await quesModel.updateMany( query, update)
+        await msgModel.updateMany( query, update)
         response.message = "Data updated successfully."
     } catch (e) {
         response.message = "Something went wrong."
@@ -35,7 +35,7 @@ const list = async ( req, res ) => {
     var response = new Response()
     try {
         const { query } = req.body
-        response.data = await quesModel.find(query)
+        response.data = await msgModel.find(query)
     } catch (e) {
         response.message = "Something went wrong."
         res.error = e
