@@ -14,7 +14,7 @@ const Question = require('../Controller/Question')
 const Answer = require('../Controller/Answer')
 
 // // User routes
-// routes.get('/', (req, res) => { res.send("This app is working fine.") } );
+routes.get('/', (req, res) => { res.send("This app is working fine.") } );
 
 // // User routes
 routes.post('/user/create', User.create);
